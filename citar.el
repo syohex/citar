@@ -222,6 +222,17 @@ If nil, single resources will open without prompting."
   :group 'citar
   :type '(boolean))
 
+(defcustom citar-open-note-functions
+  '(citar-file--open-note citar--open-note-field citar-org-roam-open-note)
+  "List of functions to open a note."
+  :group 'citar
+  :type '(function))
+
+(defcustom citar-create-note-function #'citar-file--create-note
+  "Function to create a new note."
+  :group 'citar
+  :type 'function)
+
 (defcustom citar-open-note-function
   'citar--open-note
   "Function to open a new or existing note.
@@ -1045,6 +1056,13 @@ With prefix, rebuild the cache before offering candidates."
                       'citar-org-format-note-default))
       (error "You must set 'citar-notes-paths' to open notes with default notes function"))
     (funcall citar-open-note-function (car key-entry) (cdr key-entry))))
+
+(defun citar-open-note (key entry)
+  "Open note(s) associated with KEY and ENTRY."
+  (or (seq-some
+       (lambda (opener)
+         (funcall opener key entry)) citar-open-note-functions)
+      (funcall citar-create-note-function key entry)))
 
 (defun citar--open-note (key entry)
   "Open a note file from KEY and ENTRY."
